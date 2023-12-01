@@ -1,16 +1,14 @@
 #!/bin/bash
 
-part_one() {
-  awk '{gsub(/[^0-9]+/, " "); sum+=substr($1, 1, 1)substr($NF, length($NF), 1)} END{printf "%.0f\n", sum}'
-}
+declare -A NUMS
+NUMS=(["one"]="1" ["two"]="2" ["three"]="3" ["four"]="4" ["five"]="5" ["six"]="6" ["seven"]="7" ["eight"]="8" ["nine"]="9")
 
+sum() { awk '{sum += $1} END {print sum}'; }
 
-NUMS=("one" "two" "three" "four" "five" "six" "seven" "eight" "nine")
-part_two() {
-  sum=0
+calculate() {
+  local -n dict="${1:-dicts}"
+
   while IFS= read -r line; do
-    line=$(echo "$line" | tr -d '\r' | sed -e 's/[[:space:]]*$//')
-
     first=""
     last=""
     str=""
@@ -20,15 +18,13 @@ part_two() {
       [[ $ch =~ [0-9] ]] && { [ -z "$first" ] && first="$ch"; last="$ch"; str=""; continue; }
       str+="$ch"
 
-      for ((j=0; j<${#NUMS[@]}; j++)); do
-        [[ $str == *"${NUMS[j]}"* ]] && { [ -z "$first" ] && first=$((j + 1)); last=$((j + 1)); str="${str: -1}"; break; }
+      for val in "${!dict[@]}"; do
+        [[ $str == *"$val"* ]] && { [ -z "$first" ] && first="${dict[$val]}"; last="${dict[$val]}"; str="${str: -1}"; break; }
       done
     done
-
-    ((sum += "$first$last"))
+    echo "$first$last"
   done
-  echo "$sum"
 }
 
-echo "Part 1: $(cat input.txt | part_one)"
-echo "Part 2: $(cat input.txt | part_two)"
+echo "Part 1: $(cat input.txt | calculate | sum)"
+echo "Part 2: $(cat input.txt | calculate NUMS | sum)"
